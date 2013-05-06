@@ -24,7 +24,7 @@ typedef enum {
     kMessageTypeWord2,
     kMessageTypeWord3,
     kMessageTypeTime,
-    
+    KMessageTypeUseItem,
     kMessageTypeEndGame,
     kMessageTypeScore
 } MessageType;
@@ -57,6 +57,11 @@ typedef struct {
     int buttonPosition;
     int letterTag;
 }MessageGenerateButton;
+
+typedef struct{
+    Message message;
+    char Item[30];
+}MessageUseItem;
 
 typedef struct {
     Message message;
@@ -117,6 +122,12 @@ NSString *word_3;
 NSInteger score_1;
 NSInteger score_2;
 NSInteger score_3;
+
+NSString* ExtraTime =  @"Extra Time";
+NSString* ViewObstructor = @"View Obstructor";
+NSString* CharacterIncrease = @"Character Increase";
+NSString* TimeFreezer = @"Time Freezer";
+NSString* TimeSlower =@"Time Slower";
 
 
 

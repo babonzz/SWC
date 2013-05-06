@@ -14,4 +14,9 @@
     
 }
 
+-(void) Level1Chosen:(id)sender;
+-(void) Level2Chosen:(id)sender;
+-(void) Level3Chosen:(id)sender;
+-(void) Level4Chosen:(id)sender;
+-(void) Level5Chosen:(id)sender;
 @end

@@ -7,22 +7,21 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
-#import dj_database_url
+import dj_database_url
 
-#DATABASES = {
-#    'default': dj_database_url.config()
-#}
 DATABASES = {
-	'default' :{
-	'ENGINE': 'django.db.backends.postgresql_psycopg2',
-	'NAME': 'postgres',
-	'USER': 'postgres',
-	'PASSWORD':'postgres',
-	'HOST':'',
-	'PORT':'',
-	}
-
+    'default': dj_database_url.config()
 }
+#DATABASES = {
+#	'default' :{
+#	'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#	'NAME': 'postgres',
+#	'USER': 'postgres',
+#	'PASSWORD':'postgres',
+#	'HOST':'',
+#	'PORT':'',
+#	}
+#}
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -100,15 +99,16 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'SmashingWord.urls'
+ROOT_URLCONF = 'SmashingWord.urls' 
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'SmashingWord.wsgi.application'
 import os
 path = os.getcwd()
 TEMPLATE_DIRS = (
-    #"/app/templates"
-    "/home/ubuntu/Documents/Dev/SmashingWord/templates/"
+    "/app/templates"
+    #"/home/ubuntu/Documents/Dev/SmashingWord/templates/"
+    #"/home/ubuntu/169proj/SmashingWord/templates/"
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.

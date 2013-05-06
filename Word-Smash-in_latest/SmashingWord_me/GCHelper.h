@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import <GameKit/GameKit.h>
+#import <Foundation/Foundation.h>
+#import "cocos2d.h"
 
 @protocol GCHelperDelegate
 - (void)matchStarted;
@@ -41,5 +43,7 @@
 + (GCHelper *)sharedInstance;
 - (void)authenticateLocalUser;
 - (void)findMatchWithMinPlayers:(int)minPlayers maxPlayers:(int)maxPlayers viewController:(UIViewController *)viewController delegate:(id<GCHelperDelegate>)theDelegate;
+- (NSData *)broadcastData:(NSData *) data;
+
 
 @end

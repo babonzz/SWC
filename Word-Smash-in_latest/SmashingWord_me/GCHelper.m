@@ -97,6 +97,7 @@ static GCHelper *sharedHelper = nil;
                 [playersDict setObject:player forKey:player.playerID];
             }
             
+            
             // Notify delegate match can begin
             matchStarted = YES;
             [delegate matchStarted];
@@ -238,6 +239,20 @@ static GCHelper *sharedHelper = nil;
     NSLog(@"Match failed with error: %@", error.localizedDescription);
     matchStarted = NO;
     [delegate matchEnded];
+}
+
+- (NSData *)broadcastData:(NSData *) data
+{
+    NSError *error;
+    NSLog(@"Broadcasting Data...");
+    BOOL success = [[GCHelper sharedInstance].match sendDataToAllPlayers:data withDataMode:GKMatchSendDataReliable error:&error];
+    if (!success) {
+        CCLOG(@"Error sending init packet");
+        //[self matchEnded];
+        [[GCHelper sharedInstance].match disconnect];
+        [GCHelper sharedInstance].match = nil;
+    }
+    return data;
 }
 
 @end

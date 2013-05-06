@@ -18,13 +18,13 @@ typedef enum {
     kMessageTypePressButton,
     kMessageTypeGenerateButton,
     kMessageTypeHideButton,
-    kMessageTypeGameOver,
-    //kMessageTypeStartButton
+    kMessageTypeGameOver, 
+    kMessageTypeStartButton,
     kMessageTypeWord1,
     kMessageTypeWord2,
     kMessageTypeWord3,
     kMessageTypeTime,
-    
+    kMessageTypeUseCloud,
     kMessageTypeEndGame,
     kMessageTypeScore
 } MessageType;
@@ -32,6 +32,13 @@ typedef enum {
 typedef struct {
     MessageType messageType;
 } Message;
+
+
+typedef struct{
+    Message message;
+    //char Item[30];
+}MessageUseCloud;
+
 
 typedef struct {
     Message message;
@@ -62,10 +69,11 @@ typedef struct {
     Message message;
     BOOL player1Won;
 } MessageGameOver;
-/*
+
 typedef struct {
     Message message;
-} MessageStartButton;*/
+} MessageStartButton;
+
 typedef struct {
     Message message;
     char word[30];
@@ -110,6 +118,8 @@ typedef enum {
 } GameState;
 
 //score=0;
+
+
 NSString *word_1;
 NSString *word_2;
 NSString *word_3;
@@ -120,11 +130,13 @@ NSInteger score_3;
 
 
 
+NSString* selfName;
+
 @interface MultiPlayerScene : CCLayer <GCHelperDelegate>{ 
     CCMenuItemImage* startButton;
     CCMenuItemImage* back;
     CCMenuItemImage* button[9];
-    CCMenuItemImage* select[10];
+    CCMenuItemImage* select[15];
     CCLabelTTF* clock;
     CCLabelTTF* word1;
     CCLabelTTF* word2;
@@ -143,15 +155,23 @@ NSInteger score_3;
     
     int my_score;
     int opponent_score;
+    int my_penalty;
+    CCMenuItemImage* shopItem[2];
+    CCLabelTTF* shopItemCounter[2];
 }
 
 @property (strong, nonatomic) NSTimer *aTimer;              //stage timer
 @property (strong, nonatomic) NSTimer *timer;               //button appear duration timer
+@property (strong, nonatomic) NSTimer *cloudTimer;
 //@property double BUTTON_APPEAR_DURATION;
 @property (strong, nonatomic) NSArray *strArray;
 
+@property (retain) GCHelper *helper;
+@property (retain) NSData *result;
+
 //Methods used for testing
 - (void) getWords;
+- (NSArray*) request:(NSString*) path SecondParameter:(NSDictionary*) parameter;
 - (CCMenuItemImage*) getButton0;
 - (CCMenuItemImage*) getButton1;
 - (CCMenuItemImage*) getButton2;
@@ -172,6 +192,11 @@ NSInteger score_3;
 - (CCMenuItemImage*) getSelect7;
 - (CCMenuItemImage*) getSelect8;
 - (CCMenuItemImage*) getSelect9;
+- (CCMenuItemImage*) getSelect10;
+- (CCMenuItemImage*) getSelect11;
+- (CCMenuItemImage*) getSelect12;
+- (CCMenuItemImage*) getSelect13;
+- (CCMenuItemImage*) getSelect14;
 
 - (CCLabelTTF*) getWord1;
 -(void)pressButton0:(id)sender;
@@ -186,5 +211,60 @@ NSInteger score_3;
 
 -(void)hideButtons;
 -(void)resetSelectArray;
+
+-(NSData*) getNSData;
+-(void)sendData:(NSData *)data;
+-(void)sendRandomNumber;
+-(void)sendGameBegin;
+-(void)sendGenerateButton:(int)position :(int)type;
+-(void)sendStartButton;
+-(void)sendWord1:(const char*) words;
+-(void)sendWord2:(const char*) words;
+-(void)sendWord3:(const char*) words;
+-(void)sendTime:(const char*) times;
+-(void)sendEndGame;
+-(void)sendScore:(int)score;
+- (void)sendGameOver:(BOOL)player1Won;
+-(void)sendUseCloud;
+
+-(void)unSelect0: (id)sender;
+-(void)unSelect1: (id)sender;
+-(void)unSelect2: (id)sender;
+-(void)unSelect3: (id)sender;
+-(void)unSelect4: (id)sender;
+-(void)unSelect5: (id)sender;
+-(void)unSelect6: (id)sender;
+-(void)unSelect7: (id)sender;
+-(void)unSelect8: (id)sender;
+-(void)unSelect9: (id)sender;
+-(void)unSelect10: (id)sender;
+-(void)unSelect11: (id)sender;
+-(void)unSelect12: (id)sender;
+-(void)unSelect13: (id)sender;
+-(void)unSelect14: (id)sender;
+
+- (CCMenuItemImage*) getShopItem0;
+- (CCMenuItemImage*) getShopItem1;
+- (CCMenuItemImage*) getStartButton;
+
+
+- (CCLabelTTF*) getShopItemCounter0;
+- (CCLabelTTF*) getShopItemCounter1;
+
+- (CCLabelTTF*) getClock;
+
+
+- (int) getMaxChar;
+
+-(void)increasePress:(id)sender;
+
+-(void)getLetter;
+-(NSString*) get_l;
+
+-(int) getPenalty;
+-(void) setPenalty:(int)p;
+-(void)generateButton;
+-(void)cloudPress:(id)sender;
+-(void)start:(id)sender;
 @end
 

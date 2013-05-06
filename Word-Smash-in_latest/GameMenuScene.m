@@ -24,7 +24,7 @@
     //if (!TEST_MODE) {
         [[GCHelper sharedInstance] authenticateLocalUser];
     //}
-    
+    TEST_MUL = NO;
     CCScene* scene = [CCBReader sceneWithNodeGraphFromFile:@"MultiPlayer.ccbi"];
     [[CCDirector sharedDirector]replaceScene:[CCTransitionCrossFade transitionWithDuration:0.3 scene:scene]];
 }
@@ -34,4 +34,8 @@
     [[CCDirector sharedDirector]replaceScene:[CCTransitionCrossFade transitionWithDuration:0.3 scene:scene]];
 }
 
+-(void)ShopButtonPress: (id)sender{
+    CCScene* scene = [CCBReader sceneWithNodeGraphFromFile:@"Shop.ccbi"];
+    [[CCDirector sharedDirector]replaceScene:[CCTransitionCrossFade transitionWithDuration:0.3 scene:scene]];
+}
 @end

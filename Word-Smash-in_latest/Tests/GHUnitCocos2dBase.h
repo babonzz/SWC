@@ -12,7 +12,7 @@
 #import "cocos2d.h"
 
 #import "SinglePlayerScene.h"
-#import "MultiPlayerScene.h"
+//#import "MultiPlayerScene.h"
 #import "AppDelegate.h"
 
 @interface GHUnitCocos2dBase : GHTestCase
@@ -26,6 +26,6 @@
 	CCDirectorIOS	*director_;							// weak ref
     
     SinglePlayerScene *spc;
-    MultiPlayerScene *mpc;
+    //MultiPlayerScene *mpc;
 }
 @end

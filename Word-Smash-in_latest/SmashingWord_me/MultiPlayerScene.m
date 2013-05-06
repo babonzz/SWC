@@ -4,7 +4,7 @@
 //
 //  Created by Edward on 4/8/13.
 //  Copyright 2013 __MyCompanyName__. All rights reserved.
-//
+
 
 #import "MultiPlayerScene.h"
 #import "CCBReader.h"
@@ -20,7 +20,7 @@ const int MAX_LETTER_ARRAY_M = 10;             // SIZE OF THE LETTER ARRAY
 const int MAX_BUTTON_APPEAR_M = 9;             // MAXIMUM NUMBER OF BUTTONS APPEAR ON EACH TIME STEP
 const int STARTING_MINUTES_M = 1;              // STAGE DURATION
 const int STARTING_SECONDS_M = 0;             // STAGE DURATION
-const int INCR_SCORE_M = 10;                   // score increment step
+const int INCR_SCORE_M = 50;                   // score increment step
 
 const int TOTAL_WORDS_IN_FILE_M = 20;          // MAXIMUM NUMBER OF WORDS IN A DICTIONARY FILE
 const int RANGE_OF_WORD_LENGTH_M = 2;         // RANGE OF WORD LENGTH USED
@@ -40,6 +40,15 @@ BOOL STOP_M = false;
 //int failed_tests = 0;
 //NSInteger score = 0;
 
+NSString* ExtraTime =  @"Extra Time";
+NSString* ViewObstructor = @"View Obstructor";
+NSString* CharacterIncrease = @"Character Increase";
+
+
+
+NSString* TimeFreezer = @"Time Freezer";
+NSString* TimeSlower =@"Time Slower";
+
 NSMutableDictionary *word1Dict;
 NSMutableDictionary *word2Dict;
 NSMutableDictionary *word3Dict;
@@ -48,6 +57,13 @@ NSMutableDictionary *lettersDict;
 ///////for testing purposes
 
 int pressButtonTest;
+
+//new variables needed for features from the shop
+int maxChar_m = 10;
+int cloudTime;
+int p1CloudedTime;
+BOOL isCloud = NO;
+BOOL p1Clouded = NO;
 
 
 //************** generating the words **********************
@@ -111,17 +127,21 @@ int pressButtonTest;
     NSFileManager *filemgr;
     filemgr = [NSFileManager defaultManager];
     
-    NSString *home = NSHomeDirectory();
+    //NSString *home = NSHomeDirectory();
     
-    NSString *destinationPath = [NSString stringWithFormat:@"%@/SmashingWord_me.app/%@", home, fileName];
+    //NSString *destinationPath = [NSString stringWithFormat:@"%@/SmashingWord_me.app/%@", home, fileName];
     //NSLog(@"\nText File: %@\n", destinationPath);
+    //NSLog( @"THIZZZZ: %@" , [[NSBundle mainBundle] bundlePath] );
     
-    /*
-     if ([filemgr fileExistsAtPath: destinationPath] == YES)
-     NSLog (@"File exists");
-     else
-     NSLog (@"File not found!");
-     */
+    NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
+    NSString *destinationPath = [NSString stringWithFormat:@"%@/%@", bundlePath, fileName];
+    
+    NSLog(@"\nText File: %@\n", destinationPath);
+    if ([filemgr fileExistsAtPath: destinationPath] == YES)
+        NSLog (@"File exists");
+    else
+        NSLog (@"File not found!");
+    
     
     NSString *readText = [[NSString alloc] initWithContentsOfFile:destinationPath
                                                          encoding:NSUTF8StringEncoding
@@ -132,7 +152,6 @@ int pressButtonTest;
     
     return [lines[lineNum] lowercaseString];
 }
-
 -(void) hideButtons{
     [button[0] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [button[0] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
@@ -198,6 +217,14 @@ int pressButtonTest;
             NSString* tempString = [NSString stringWithFormat:@"%@%d%@%02d",@"Time : ",currMinute,@":",currSeconds];
             [clock setString:tempString];
             [self sendTime:[tempString UTF8String]];
+            if(isCloud == YES && currSeconds == cloudTime - 5){
+                isCloud = NO;
+                shopItem[1].isEnabled = YES;
+            }
+            if(p1Clouded == YES && currSeconds == p1CloudedTime -5){
+                p1Clouded = NO;
+                [self sendStartButton];
+            }
         }
         
     }
@@ -289,10 +316,10 @@ int pressButtonTest;
     
     NSInteger count = 0;
     
-    for (int i=0; i<MAX_LETTER_ARRAY_M; i++){
+    for (int i=0; i<maxChar_m; i++){
         
         if ([lettersDict objectForKey:[NSString stringWithFormat:@"%c",(char)(select[i].tag+32)]]==nil && select[i].tag != 0){
-            for (int j=i; j<MAX_LETTER_ARRAY_M; j++){
+            for (int j=i; j<maxChar_m; j++){
                 if (select[i].tag == select[j].tag)
                     count++;
             }
@@ -342,67 +369,165 @@ int pressButtonTest;
     [self getLetter];
     switch (buttonToAppear) {
         case 1:
-            [button[0] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[0] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[0].tag = tempTag;
-            button[0].isEnabled=YES;
-            [self sendGenerateButton:0 :tempTag];
+            if(p1Clouded){
+                [button[0] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[0] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[0].tag = 94;
+                button[0].isEnabled=YES;
+            }
+            else{
+                [button[0] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[0] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[0].tag = tempTag;
+                button[0].isEnabled=YES;
+            }
+            if(isCloud)
+                [self sendGenerateButton:0 :94];
+            else
+                [self sendGenerateButton:0 :tempTag];
             break;
         case 2:
-            [button[1] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[1] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[1].tag = tempTag;
-            button[1].isEnabled=YES;
-            [self sendGenerateButton:1 :tempTag];
+            if(p1Clouded){
+                [button[1] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[1] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[1].tag = 94;
+                button[1].isEnabled=YES;
+            }
+            else{
+                [button[1] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[1] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[1].tag = tempTag;
+                button[1].isEnabled=YES;
+            }
+            if(isCloud)
+                [self sendGenerateButton:1 :94];
+            else
+                [self sendGenerateButton:1 :tempTag];
             break;
         case 3:
-            [button[2] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[2] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[2].tag = tempTag;
-            button[2].isEnabled=YES;
-            [self sendGenerateButton:2 :tempTag];
+            if(p1Clouded){
+                [button[2] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[2] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[2].tag = 94;
+                button[2].isEnabled=YES;
+            }
+            else{
+                [button[2] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[2] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[2].tag = tempTag;
+                button[2].isEnabled=YES;
+            }            if(isCloud)
+                [self sendGenerateButton:2 :94];
+            else
+                [self sendGenerateButton:2 :tempTag];
             break;
         case 4:
-            [button[3] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[3] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[3].tag = tempTag;
-            button[3].isEnabled=YES;
-            [self sendGenerateButton:3 :tempTag];
+            if(p1Clouded){
+                [button[3] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[3] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[3].tag = 94;
+                button[3].isEnabled=YES;
+            }
+            else{
+                [button[3] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[3] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[3].tag = tempTag;
+                button[3].isEnabled=YES;
+            }
+            if(isCloud)
+                [self sendGenerateButton:3 :94];
+            else
+                [self sendGenerateButton:3 :tempTag];
             break;
         case 5:
-            [button[4] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[4] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[4].tag = tempTag;
-            button[4].isEnabled=YES;
-            [self sendGenerateButton:4 :tempTag];
+            if(p1Clouded){
+                [button[4] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[4] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[4].tag = 94;
+                button[4].isEnabled=YES;
+            }
+            else{
+                [button[4] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[4] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[4].tag = tempTag;
+                button[4].isEnabled=YES;
+            }
+            if(isCloud)
+                [self sendGenerateButton:4 :94];
+            else
+                [self sendGenerateButton:4 :tempTag];
             break;
         case 6:
-            [button[5] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[5] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[5].tag = tempTag;
-            button[5].isEnabled=YES;
-            [self sendGenerateButton:5 :tempTag];
+            if(p1Clouded){
+                [button[5] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[5] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[5].tag = 94;
+                button[5].isEnabled=YES;
+            }
+            else{
+                [button[5] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[5] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[5].tag = tempTag;
+                button[5].isEnabled=YES;
+            }
+            if(isCloud)
+                [self sendGenerateButton:5 :94];
+            else
+                [self sendGenerateButton:5 :tempTag];
             break;
         case 7:
-            [button[6] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[6] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[6].tag = tempTag;
-            button[6].isEnabled=YES;
-            [self sendGenerateButton:6 :tempTag];
+            if(p1Clouded){
+                [button[6] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[6] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[6].tag = 94;
+                button[6].isEnabled=YES;
+            }
+            else{
+                [button[6] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[6] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[6].tag = tempTag;
+                button[6].isEnabled=YES;
+            }
+            if(isCloud)
+                [self sendGenerateButton:6 :94];
+            else
+                [self sendGenerateButton:6 :tempTag];
             break;
         case 8:
-            [button[7] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[7] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[7].tag = tempTag;
-            button[7].isEnabled=YES;
-            [self sendGenerateButton:7 :tempTag];
+            if(p1Clouded){
+                [button[7] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[7] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[7].tag = 94;
+                button[7].isEnabled=YES;
+            }
+            else{
+                [button[7] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[7] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[7].tag = tempTag;
+                button[7].isEnabled=YES;
+            }
+            if(isCloud)
+                [self sendGenerateButton:7 :94];
+            else
+                [self sendGenerateButton:7 :tempTag];
             break;
         case 9:
-            [button[8] setNormalImage:[CCSprite spriteWithFile:l_M]];
-            [button[8] setSelectedImage:[CCSprite spriteWithFile:l_M]];
-            button[8].tag = tempTag;
-            button[8].isEnabled=YES;
-            [self sendGenerateButton:8 :tempTag];
+            if(p1Clouded){
+                [button[8] setNormalImage:[CCSprite spriteWithFile:@"^.png"]];
+                [button[8] setSelectedImage:[CCSprite spriteWithFile:@"^.png"]];
+                button[8].tag = 94;
+                button[8].isEnabled=YES;
+            }
+            else{
+                [button[8] setNormalImage:[CCSprite spriteWithFile:l_M]];
+                [button[8] setSelectedImage:[CCSprite spriteWithFile:l_M]];
+                button[8].tag = tempTag;
+                button[8].isEnabled=YES;
+            }
+            if(isCloud)
+                [self sendGenerateButton:8 :94];
+            else
+                [self sendGenerateButton:8 :tempTag];
             break;
         default: break;
     }
@@ -411,7 +536,7 @@ int pressButtonTest;
 
 //generating a letter to show on the button
 - (void)getLetter{
-    tempTag = (rand()%26) + 65;
+    tempTag = (rand()%28) + 65;
     char c = (char)tempTag;
     l_M = [NSString stringWithFormat:@"%c"@".png" , c];
 }
@@ -424,7 +549,9 @@ int pressButtonTest;
         [self temporaryTests];
         return;
     }
-    //[self sendStartButton];
+    shopItem[0].isEnabled = YES;
+    shopItem[1].isEnabled = YES;
+    [self sendStartButton];
     [self getWords];
     //self.word1.text = @"Edwarda";
     [self parseWord: [word1 string] dictionary:word1Dict];
@@ -453,7 +580,7 @@ int pressButtonTest;
     
     
     //button appear timer
-    self.aTimer = [NSTimer scheduledTimerWithTimeInterval:2 target:self selector:@selector(onTick) userInfo:nil repeats:YES];
+    self.aTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(onTick) userInfo:nil repeats:YES];
     
     [startButton setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [startButton setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
@@ -463,135 +590,362 @@ int pressButtonTest;
 }
 
 -(void)pressButton0:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[0] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[0] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[0] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[0].isEnabled=NO;
-            [self sendPressButton:0];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[0].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[0].tag]]];
-            select[i].tag = button[0].tag;
+            
+            
+            if(button[0].tag == 91 || button[0].tag == 92 || button[0].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[0].parent.position;
+                [button[0].parent.parent addChild:explosion];
+                if(button[0].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[0].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+            }
+            else{
+                [self sendPressButton:0];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[0].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[0].tag]]];
+                select[i].tag = button[0].tag;
+            }
             break;
         }
     }
 }
 
 -(void)pressButton1:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[1] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[1] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[1] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[1].isEnabled=NO;
-            [self sendPressButton:1];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[1].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[1].tag]]];
-            select[i].tag = button[1].tag;
+            
+            if(button[1].tag == 91 || button[1].tag == 92 || button[1].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[1].parent.position;
+                [button[1].parent.parent addChild:explosion];
+                if(button[1].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[1].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+            }
+            else{
+                [self sendPressButton:1];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[1].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[1].tag]]];
+                select[i].tag = button[1].tag;
+            }
             break;
         }
     }
 }
 
 -(void)pressButton2:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[2] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[2] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[2] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[2].isEnabled=NO;
-            [self sendPressButton:2];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[2].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[2].tag]]];
-            select[i].tag = button[2].tag;
+            
+            if(button[2].tag == 91 || button[2].tag == 92 || button[2].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[2].parent.position;
+                [button[2].parent.parent addChild:explosion];
+                if(button[2].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[2].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+            }
+            else{
+                [self sendPressButton:2];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[2].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[2].tag]]];
+                select[i].tag = button[2].tag;
+            }
             break;
         }
     }
 }
 
 -(void)pressButton3:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[3] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[3] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[3] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[3].isEnabled=NO;
-            [self sendPressButton:3];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[3].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[3].tag]]];
-            select[i].tag = button[3].tag;
+            
+            if(button[3].tag == 91 || button[3].tag == 92 || button[3].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[3].parent.position;
+                [button[3].parent.parent addChild:explosion];
+                if(button[3].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[3].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+            }
+            else{
+                [self sendPressButton:3];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[3].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[3].tag]]];
+                select[i].tag = button[3].tag;
+            }
             break;
         }
     }
 }
 
 -(void)pressButton4:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[4] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[4] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[4] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[4].isEnabled=NO;
-            [self sendPressButton:4];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[4].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[4].tag]]];
-            select[i].tag = button[4].tag;
+            
+            if(button[4].tag == 91 || button[4].tag == 92 || button[4].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[4].parent.position;
+                [button[4].parent.parent addChild:explosion];
+                if(button[4].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[4].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+            }
+            
+            else{
+                [self sendPressButton:4];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[4].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[4].tag]]];
+                select[i].tag = button[4].tag;
+            }
             break;
         }
     }
 }
 
 -(void)pressButton5:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[5] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[5] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[5] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[5].isEnabled=NO;
-            [self sendPressButton:5];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[5].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[5].tag]]];
-            select[i].tag = button[5].tag;
+            
+            if(button[5].tag == 91 || button[5].tag == 92 || button[5].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[5].parent.position;
+                [button[5].parent.parent addChild:explosion];
+                if(button[5].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[5].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+            }
+            else{
+                [self sendPressButton:5];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[5].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[5].tag]]];
+                select[i].tag = button[5].tag;
+            }
             break;
         }
     }
 }
 
 -(void)pressButton6:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[6] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[6] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[6] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[6].isEnabled=NO;
-            [self sendPressButton:6];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[6].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[6].tag]]];
-            select[i].tag = button[6].tag;
+            if(button[6].tag == 91 || button[6].tag == 92 || button[6].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[6].parent.position;
+                [button[6].parent.parent addChild:explosion];
+                if(button[6].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[6].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+
+            }
+            else{
+                [self sendPressButton:6];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[6].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[6].tag]]];
+                select[i].tag = button[6].tag;
+            }
             break;
         }
     }
 }
 
 -(void)pressButton7:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[7] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[7] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[7] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[7].isEnabled=NO;
-            [self sendPressButton:7];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[7].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[7].tag]]];
-            select[i].tag = button[7].tag;
+            
+            if(button[7].tag == 91 || button[7].tag == 92 || button[7].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[7].parent.position;
+                [button[7].parent.parent addChild:explosion];
+                if(button[7].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[7].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+            }
+            else{
+                [self sendPressButton:7];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[7].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[7].tag]]];
+                select[i].tag = button[7].tag;
+            }
             break;
         }
     }
 }
 
 -(void)pressButton8:(id)sender{
-    for(int i = 0; i<10; i++){
+    for(int i = 0; i<maxChar_m; i++){
         if(select[i].tag == 0){
             [button[8] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
-            [button[8] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+            [button[8] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
             button[8].isEnabled=NO;
-            [self sendPressButton:8];
-            [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[8].tag]]];
-            [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[8].tag]]];
-            select[i].tag = button[8].tag;
+            
+            if(button[8].tag == 91 || button[8].tag == 92 || button[8].tag ==93){
+                ///////added exlosion animation
+                CCNode* explosion = [CCBReader nodeGraphFromFile:@"Explosion.ccbi"];
+                explosion.position = button[8].parent.position;
+                [button[8].parent.parent addChild:explosion];
+                if(button[8].tag ==91){
+                    my_penalty += 10;
+                }
+                if(button[8].tag ==92){
+                    int tempCount = 0;
+                    for(int i=0;i<maxChar_m;i++){
+                        if(select[i].tag >=65){
+                            select[i].tag = 0;
+                            [select[i] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            [select[i] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+                            tempCount++;
+                        }
+                        if(tempCount ==3)
+                            break;
+                    }
+                }
+            }
+            else{
+                [self sendPressButton:8];
+                [select[i] setNormalImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[8].tag]]];
+                [select[i] setSelectedImage:[CCSprite spriteWithFile:[NSString stringWithFormat:@"%c"@".png", (char)button[8].tag]]];
+                select[i].tag = button[8].tag;
+            }
             break;
         }
     }
@@ -600,67 +954,152 @@ int pressButtonTest;
 -(void)unSelect0: (id)sender{
     [select[0] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[0] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[0].tag > 0)
+        my_penalty += 1;
     select[0].tag = 0;
 }
 
 -(void)unSelect1: (id)sender{
     [select[1] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[1] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[1].tag > 0)
+        my_penalty += 1;
     select[1].tag = 0;
 }
 
 -(void)unSelect2: (id)sender{
     [select[2] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[2] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[2].tag > 0)
+        my_penalty += 1;
     select[2].tag = 0;
 }
 
 -(void)unSelect3: (id)sender{
     [select[3] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[3] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[3].tag > 0)
+        my_penalty += 1;
     select[3].tag = 0;
 }
 
 -(void)unSelect4: (id)sender{
     [select[4] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[4] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[4].tag > 0)
+        my_penalty += 1;
     select[4].tag = 0;
 }
 
 -(void)unSelect5: (id)sender{
     [select[5] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[5] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[5].tag > 0)
+        my_penalty += 1;
     select[5].tag = 0;
 }
 
 -(void)unSelect6: (id)sender{
     [select[6] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[6] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[6].tag > 0)
+        my_penalty += 1;
     select[6].tag = 0;
 }
 
 -(void)unSelect7: (id)sender{
     [select[7] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[7] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[7].tag > 0)
+        my_penalty += 1;
     select[7].tag = 0;
 }
 
 -(void)unSelect8: (id)sender{
     [select[8] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[8] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[8].tag > 0)
+        my_penalty += 1;
     select[8].tag = 0;
 }
 
 -(void)unSelect9: (id)sender{
     [select[9] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
     [select[9] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[9].tag > 0)
+        my_penalty += 1;
     select[9].tag = 0;
+}
+
+-(void)unSelect10: (id)sender{
+    [select[10] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    [select[10] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[10].tag > 0)
+        my_penalty += 1;
+    select[10].tag = 0;
+}
+
+-(void)unSelect11: (id)sender{
+    [select[11] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    [select[11] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[11].tag > 0)
+        my_penalty += 1;
+    select[11].tag = 0;
+}
+
+-(void)unSelect12: (id)sender{
+    [select[12] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    [select[12] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[12].tag > 0)
+        my_penalty += 1;
+    select[12].tag = 0;
+}
+
+-(void)unSelect13: (id)sender{
+    [select[13] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    [select[13] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[13].tag > 0)
+        my_penalty += 1;
+    select[13].tag = 0;
+}
+
+-(void)unSelect14: (id)sender{
+    [select[14] setNormalImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    [select[14] setSelectedImage:[CCSprite spriteWithFile:@"transparent.png"]];
+    if(select[14].tag > 0)
+        my_penalty += 1;
+    select[14].tag = 0;
+}
+
+-(void)increasePress: (id)sender{
+    shopItem[0].isEnabled = NO;
+    if(increaseCounter > 0){
+        increaseCounter --;
+        [shopItemCounter[0] setString:[NSString stringWithFormat:@"x%i", increaseCounter]];
+        maxChar_m = 15;
+    }
+}
+
+-(void)cloudPress: (id)sender{
+    shopItem[1].isEnabled = NO;
+    if(cloudCounter > 0){
+        cloudCounter --;
+        [shopItemCounter[1] setString:[NSString stringWithFormat:@"x%i", cloudCounter]];
+        if(!isPlayer1)
+            [self sendUseCloud];
+        else{
+            isCloud = YES;
+            cloudTime = currSeconds;
+        }
+
+    }
 }
 
 -(id)init{
     if((self=[super init])){
         my_score = 0;
         opponent_score = 0;
+    
         srand ( time(NULL) );//clear out random numbers
         
         self.strArray = [NSArray arrayWithObjects:@"HELLO",@"WORLD",@"EDWARD",@"BING",@"WENHAO",@"DENNY",nil];
@@ -687,7 +1126,7 @@ int pressButtonTest;
         [self addChild:starMenu z:1];
 
         button[0] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton0:)];
-        [button[0] setScale:0.7];
+        [button[0] setScale:0.55];
         button[0].tag = 0;
         button[0].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[0], nil];
@@ -696,7 +1135,7 @@ int pressButtonTest;
         [self addChild:starMenu z:1];
         
         button[1] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton1:)];
-        [button[1] setScale:0.7];
+        [button[1] setScale:0.55];
         button[1].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[1], nil];
         starMenu.position = CGPointZero;
@@ -704,7 +1143,7 @@ int pressButtonTest;
         [self addChild:starMenu z:1];
         
         button[2] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton2:)];
-        [button[2] setScale:0.7];
+        [button[2] setScale:0.55];
         button[2].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[2], nil];
         starMenu.position = CGPointZero;
@@ -712,143 +1151,221 @@ int pressButtonTest;
         [self addChild:starMenu z:1];
         
         button[3] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton3:)];
-        [button[3] setScale:0.7];
+        [button[3] setScale:0.55];
         button[3].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[3], nil];
         starMenu.position = CGPointZero;
-        [starMenu setPosition:ccp(50,250)];
+        [starMenu setPosition:ccp(50,210)];
         [self addChild:starMenu z:1];
         
         button[4] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton4:)];
-        [button[4] setScale:0.7];
+        [button[4] setScale:0.55];
         button[4].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[4], nil];
         starMenu.position = CGPointZero;
-        [starMenu setPosition:ccp(150,250)];
+        [starMenu setPosition:ccp(150,210)];
         [self addChild:starMenu z:1];
         
         button[5] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton5:)];
-        [button[5] setScale:0.7];
+        [button[5] setScale:0.55];
         button[5].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[5], nil];
         starMenu.position = CGPointZero;
-        [starMenu setPosition:ccp(250,250)];
+        [starMenu setPosition:ccp(250,210)];
         [self addChild:starMenu z:1];
         
         button[6] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton6:)];
-        [button[6] setScale:0.7];
+        [button[6] setScale:0.55];
         button[6].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[6], nil];
         starMenu.position = CGPointZero;
-        [starMenu setPosition:ccp(50,350)];
+        [starMenu setPosition:ccp(50,270)];
         [self addChild:starMenu z:1];
         
         button[7] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton7:)];
-        [button[7] setScale:0.7];
+        [button[7] setScale:0.55];
         button[7].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[7], nil];
         starMenu.position = CGPointZero;
-        [starMenu setPosition:ccp(150,350)];
+        [starMenu setPosition:ccp(150,270)];
         [self addChild:starMenu z:1];
         
         button[8] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(pressButton8:)];
-        [button[8] setScale:0.7];
+        [button[8] setScale:0.55];
         button[8].isEnabled=NO;
         starMenu = [CCMenu menuWithItems:button[8], nil];
         starMenu.position = CGPointZero;
-        [starMenu setPosition:ccp(250,350)];
+        [starMenu setPosition:ccp(250,270)];
         [self addChild:starMenu z:1];
         
         /////////////////////////
         select[0] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect0:)];
-        [select[0] setScale:0.4];
+        [select[0] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[0], nil];
         select[0].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(20,50)];
+        [starMenu setPosition:ccp(30,40)];
         [self addChild:starMenu z:1];
         
         select[1] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect1:)];
-        [select[1] setScale:0.4];
+        [select[1] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[1], nil];
         select[1].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(50,50)];
+        [starMenu setPosition:ccp(60,40)];
         [self addChild:starMenu z:1];
         
         select[2] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect2:)];
-        [select[2] setScale:0.4];
+        [select[2] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[2], nil];
         select[2].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(85,50)];
+        [starMenu setPosition:ccp(90,40)];
         [self addChild:starMenu z:1];
         
         select[3] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect3:)];
-        [select[3] setScale:0.4];
+        [select[3] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[3], nil];
         select[3].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(120,50)];
+        [starMenu setPosition:ccp(120,40)];
         [self addChild:starMenu z:1];
         
         select[4] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect4:)];
-        [select[4] setScale:0.4];
+        [select[4] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[4], nil];
         select[4].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(155,50)];
+        [starMenu setPosition:ccp(150,40)];
         [self addChild:starMenu z:1];
         
         select[5] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect5:)];
-        [select[5] setScale:0.4];
+        [select[5] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[5], nil];
         select[5].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(190,50)];
+        [starMenu setPosition:ccp(180,40)];
         [self addChild:starMenu z:1];
         
         select[6] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect6:)];
-        [select[6] setScale:0.4];
+        [select[6] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[6], nil];
         select[6].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(225,50)];
+        [starMenu setPosition:ccp(210,40)];
         [self addChild:starMenu z:1];
         
         select[7] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect7:)];
-        [select[7] setScale:0.4];
+        [select[7] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[7], nil];
         select[7].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(260,50)];
+        [starMenu setPosition:ccp(240,40)];
         [self addChild:starMenu z:1];
         
         select[8] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect8:)];
-        [select[8] setScale:0.4];
+        [select[8] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[8], nil];
         select[8].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(295,50)];
+        [starMenu setPosition:ccp(270,40)];
         [self addChild:starMenu z:1];
         
         select[9] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect9:)];
-        [select[9] setScale:0.4];
+        [select[9] setScale:0.3];
         starMenu = [CCMenu menuWithItems:select[9], nil];
         select[9].tag = 0;
         starMenu.position = CGPointZero;
         //[self addChild:starMenu];
-        [starMenu setPosition:ccp(330,50)];
+        [starMenu setPosition:ccp(300,40)];
         [self addChild:starMenu z:1];
+        
+        select[10] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect10:)];
+        [select[10] setScale:0.3];
+        starMenu = [CCMenu menuWithItems:select[10], nil];
+        select[10].tag = 0;
+        starMenu.position = CGPointZero;
+        //[self addChild:starMenu];
+        [starMenu setPosition:ccp(30,80)];
+        [self addChild:starMenu z:1];
+        
+        select[11] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect11:)];
+        [select[11] setScale:0.3];
+        starMenu = [CCMenu menuWithItems:select[11], nil];
+        select[11].tag = 0;
+        starMenu.position = CGPointZero;
+        //[self addChild:starMenu];
+        [starMenu setPosition:ccp(60,80)];
+        [self addChild:starMenu z:1];
+        
+        select[12] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect12:)];
+        [select[12] setScale:0.3];
+        starMenu = [CCMenu menuWithItems:select[12], nil];
+        select[12].tag = 0;
+        starMenu.position = CGPointZero;
+        //[self addChild:starMenu];
+        [starMenu setPosition:ccp(90,80)];
+        [self addChild:starMenu z:1];
+        
+        select[13] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect13:)];
+        [select[13] setScale:0.3];
+        starMenu = [CCMenu menuWithItems:select[13], nil];
+        select[13].tag = 0;
+        starMenu.position = CGPointZero;
+        //[self addChild:starMenu];
+        [starMenu setPosition:ccp(120,80)];
+        [self addChild:starMenu z:1];
+        
+        select[14] = [CCMenuItemImage itemWithNormalImage:@"transparent.png" selectedImage:@"transparent.png" target:self selector:@selector(unSelect14:)];
+        [select[14] setScale:0.3];
+        starMenu = [CCMenu menuWithItems:select[14], nil];
+        select[14].tag = 0;
+        starMenu.position = CGPointZero;
+        //[self addChild:starMenu];
+        [starMenu setPosition:ccp(150,80)];
+        [self addChild:starMenu z:1];
+        
+        /////////////////////////////shop items
+        maxChar_m = 10;
+        
+        shopItem[0] = [CCMenuItemImage itemWithNormalImage:@"increase.png" selectedImage:@"increase.png" target:self selector:@selector(increasePress:)];
+        [shopItem[0] setScale:0.2];
+        shopItem[0].isEnabled=YES;
+        starMenu = [CCMenu menuWithItems:shopItem[0], nil];
+        starMenu.position = CGPointZero;
+        [starMenu setPosition:ccp(30,350)];
+        [self addChild:starMenu z:1];
+        
+        shopItemCounter[0] = [CCLabelTTF labelWithString:[NSString stringWithFormat:@"x%i", increaseCounter] fontName:@"ArialRoundedMTBold" fontSize:24];
+        shopItemCounter[0].position = ccp(30,310);
+        shopItemCounter[0].color = ccBLACK;
+        [self addChild:shopItemCounter[0] z:1];
+        
+        shopItem[1] = [CCMenuItemImage itemWithNormalImage:@"cloud.png" selectedImage:@"cloud.png" target:self selector:@selector(cloudPress:)];
+        [shopItem[1] setScale:0.2];
+        shopItem[1].isEnabled=YES;
+        starMenu = [CCMenu menuWithItems:shopItem[1], nil];
+        starMenu.position = CGPointZero;
+        [starMenu setPosition:ccp(110,340)];
+        [self addChild:starMenu z:1];
+        
+        shopItemCounter[1] = [CCLabelTTF labelWithString:[NSString stringWithFormat:@"x%i", cloudCounter] fontName:@"ArialRoundedMTBold" fontSize:24];
+        shopItemCounter[1].position = ccp(110,310);
+        shopItemCounter[1].color = ccBLACK;
+        [self addChild:shopItemCounter[1] z:1];
+        
+        shopItem[0].isEnabled = NO;
+        shopItem[1].isEnabled = NO;
+        
         
         ///////////////////////////////////////////////////
         ///////////////////start button
@@ -876,6 +1393,8 @@ int pressButtonTest;
         [self addChild:word3 z:1];
         
         AppController * delegate = (AppController *) [UIApplication sharedApplication].delegate;
+        
+        if  (!TEST_MUL)
         [[GCHelper sharedInstance] findMatchWithMinPlayers:2 maxPlayers:2 viewController:delegate.navController delegate:self];
         
         
@@ -889,6 +1408,8 @@ int pressButtonTest;
         
         ourRandom = arc4random();
         [self setGameState:kGameStateWaitingForStart];
+        
+        self.helper = [GCHelper sharedInstance];
         
     }
     return self;
@@ -924,10 +1445,16 @@ int pressButtonTest;
         [debugLabel setString:@"Done"];
     }
     
+    
 }
 
 - (void)sendData:(NSData *)data {
+    //self.helper = [GCHelper sharedInstance];
+    NSLog(@"Sending Data...");
+    self.result = [self.helper broadcastData:data];
+    /*
     NSError *error;
+    NSLog(@"Sending Data...");
     BOOL success = [[GCHelper sharedInstance].match sendDataToAllPlayers:data withDataMode:GKMatchSendDataReliable error:&error];
     if (!success) {
         CCLOG(@"Error sending init packet");
@@ -935,14 +1462,17 @@ int pressButtonTest;
         [[GCHelper sharedInstance].match disconnect];
         [GCHelper sharedInstance].match = nil;
     }
+     */
 }
+
+NSData* data;
 
 - (void)sendRandomNumber {
     
     MessageRandomNumber message;
     message.message.messageType = kMessageTypeRandomNumber;
     message.randomNumber = ourRandom;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageRandomNumber)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageRandomNumber)];
     [self sendData:data];
 }
 
@@ -950,7 +1480,7 @@ int pressButtonTest;
     
     MessageGameBegin message;
     message.message.messageType = kMessageTypeGameBegin;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageGameBegin)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageGameBegin)];
     [self sendData:data];
     
 }
@@ -960,7 +1490,7 @@ int pressButtonTest;
     MessagePressButton message;
     message.buttonPosition = position;
     message.message.messageType = kMessageTypePressButton;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessagePressButton)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessagePressButton)];
     [self sendData:data];
     
 }
@@ -970,7 +1500,7 @@ int pressButtonTest;
     message.buttonPosition = position;
     message.letterTag = tag;
     message.message.messageType = kMessageTypeGenerateButton;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageGenerateButton)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageGenerateButton)];
     [self sendData:data];
 }
 
@@ -978,22 +1508,22 @@ int pressButtonTest;
     MessageHideButton message;
     message.buttonPosition = position;
     message.message.messageType = kMessageTypeHideButton;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageHideButton)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageHideButton)];
     [self sendData:data];
 }
-/*
+
 -(void)sendStartButton{
     MessageStartButton message;
-    message.message.messageType = kMessageTypeGameBegin;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageStartButton)];
+    message.message.messageType = kMessageTypeStartButton;
+    data = [NSData dataWithBytes:&message length:sizeof(MessageStartButton)];
     [self sendData:data];
-}*/
+}
 
 -(void)sendWord1:(const char*) words{
     MessageWord1 message;
     strcpy(message.word,words);
     message.message.messageType = kMessageTypeWord1;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageWord1)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageWord1)];
     [self sendData:data];
 }
 
@@ -1001,14 +1531,14 @@ int pressButtonTest;
     MessageWord2 message;
     strcpy(message.word,words);
     message.message.messageType = kMessageTypeWord2;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageWord2)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageWord2)];
     [self sendData:data];}
 
 -(void)sendWord3:(const char*) words{
     MessageWord3 message;
     strcpy(message.word,words);
     message.message.messageType = kMessageTypeWord3;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageWord3)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageWord3)];
     [self sendData:data];
 }
 
@@ -1016,14 +1546,14 @@ int pressButtonTest;
     MessageTime message;
     strcpy(message.time, times);
     message.message.messageType = kMessageTypeTime;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageTime)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageTime)];
     [self sendData:data];
 }
 
 -(void)sendEndGame {
     MessageEndGame message;
     message.message.messageType = kMessageTypeEndGame;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageEndGame)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageEndGame)];
     [self sendData:data];   
 }
 
@@ -1031,7 +1561,7 @@ int pressButtonTest;
     MessageScore message;
     message.message.messageType = kMessageTypeScore;
     message.score = score;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageScore)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageScore)];
     [self sendData:data];
 }
 
@@ -1040,58 +1570,25 @@ int pressButtonTest;
     MessageGameOver message;
     message.message.messageType = kMessageTypeGameOver;
     message.player1Won = player1Won;
-    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageGameOver)];
+    data = [NSData dataWithBytes:&message length:sizeof(MessageGameOver)];
     [self sendData:data];
     
 }
 
-
-- (void)restartTapped:(id)sender {
-    // Reload the current scene
-    [[GCHelper sharedInstance] authenticateLocalUser];
-    CCScene* scene = [CCBReader sceneWithNodeGraphFromFile:@"MultiPlayer.ccbi"];
-    [[CCDirector sharedDirector] replaceScene:[CCTransitionZoomFlipX transitionWithDuration:0.5 scene:scene]];
-    
+/*Send data method for item usage*/
+-(void)sendUseCloud{
+    MessageEndGame message;
+    message.message.messageType = kMessageTypeUseCloud;
+    data = [NSData dataWithBytes:&message length:sizeof(MessageUseCloud)];
+    [self sendData:data];
 }
-
-// Helper code to show a menu to restart the level
-// From Cat Nap tutorial
-
-
 
 - (void)tryStartGame {
     
     if (isPlayer1 && gameState == kGameStateWaitingForStart) {
         [self setGameState:kGameStateActive];
         [self sendGameBegin];
-        [self setupStringsWithOtherPlayerId:otherPlayerID];
-    }
-    
-}
-
-
-- (void)setupStringsWithOtherPlayerId:(NSString *)playerID {
-    
-    if (isPlayer1) {
-        
-        /*player1Label = [CCLabelBMFont labelWithString:[GKLocalPlayer localPlayer].alias fntFile:@"Arial.fnt"];
-        [self addChild:player1Label];
-        
-        GKPlayer *player = [[GCHelper sharedInstance].playersDict objectForKey:playerID];
-        player2Label = [CCLabelBMFont labelWithString:player.alias fntFile:@"Arial.fnt"];
-        [self addChild:player2Label];*/
-        CCLOG(@"ddasd");
-        
-    } else {
-        /*
-        player2Label = [CCLabelBMFont labelWithString:[GKLocalPlayer localPlayer].alias fntFile:@"Arial.fnt"];
-        [self addChild:player2Label];
-        
-        GKPlayer *player = [[GCHelper sharedInstance].playersDict objectForKey:playerID];
-        player1Label = [CCLabelBMFont labelWithString:player.alias fntFile:@"Arial.fnt"];
-        [self addChild:player1Label];*/
-        CCLOG(@"dsadas");
-        
+        //[self setupStringsWithOtherPlayerId:otherPlayerID];
     }
     
 }
@@ -1112,6 +1609,8 @@ int pressButtonTest;
 #pragma mark GCHelperDelegate
 
 - (void)matchStarted {
+    selfName =[[GKLocalPlayer localPlayer]alias];
+    NSLog(@"%@", selfName);
     CCLOG(@"Match started");
     if (receivedRandom) {
         [self setGameState:kGameStateWaitingForStart];
@@ -1122,9 +1621,10 @@ int pressButtonTest;
     [self tryStartGame];
 }
 
+/*
 - (void)inviteReceived {
     [self restartTapped:nil];
-}
+}*/
 
 - (void)matchEnded {
     CCLOG(@"Match ended");
@@ -1167,13 +1667,20 @@ int pressButtonTest;
             score_p1 = opponent_score;
             score_p2 = my_score;
         }
-        //[self request:@"/users/SaveScores/multiple"];
+        NSNumber *tempNum = [NSNumber numberWithInt:my_score];
+        NSDictionary* tempDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                  tempNum,@"score",
+                                  selfName,@"user",
+                                  nil];
+        [self request:@"/users/SaveScores/multiple" SecondParameter:tempDict];
         CCScene* scene = [CCBReader sceneWithNodeGraphFromFile:@"Score.ccbi"];
         [[CCDirector sharedDirector]replaceScene:[CCTransitionCrossFade transitionWithDuration:0.3 scene:scene]];
     }
     //[self init];
 
 }
+
+
 
 - (void)match:(GKMatch *)match didReceiveData:(NSData *)data fromPlayer:(NSString *)playerID {
     
@@ -1221,9 +1728,15 @@ int pressButtonTest;
     } else if (message->messageType == kMessageTypeGameBegin) {
         
         [self setGameState:kGameStateActive];
-        [self setupStringsWithOtherPlayerId:playerID];
+        //[self setupStringsWithOtherPlayerId:playerID];
         
-    } else if (message->messageType == kMessageTypeGenerateButton) {
+    }
+    else if (message->messageType == kMessageTypeStartButton) {
+        shopItem[0].isEnabled = YES;
+        shopItem[1].isEnabled = YES;
+    }
+    
+    else if (message->messageType == kMessageTypeGenerateButton) {
         
         MessageGenerateButton * tempMessage = (MessageGenerateButton*) [data bytes];
         //CCLOG(@"Received button information to generate");
@@ -1311,41 +1824,23 @@ int pressButtonTest;
                 score_p1 = opponent_score;
                 score_p2 = my_score;
             }
-            //[self request:@"/users/SaveScores/multiple"];
+            NSNumber *tempNum = [NSNumber numberWithInt:my_score];
+            NSDictionary* tempDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                      tempNum,@"score",
+                                      selfName,@"user",
+                                      nil];
+            [self request:@"/users/SaveScores/multiple" SecondParameter:tempDict];
             CCScene* scene = [CCBReader sceneWithNodeGraphFromFile:@"Score.ccbi"];
             [[CCDirector sharedDirector]replaceScene:[CCTransitionCrossFade transitionWithDuration:0.3 scene:scene]];
         }
     }
+    else if(message->messageType == kMessageTypeUseCloud){
+        p1Clouded = YES;
+        p1CloudedTime = currSeconds;
+    }
+
 
 }
-
-- (void) request:(NSString*) path{
-    NSDictionary *jsonDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                              [GKLocalPlayer localPlayer].alias, @"user",
-                              my_score, @"score",
-                              nil];
-    NSError *tempError;
-    NSData *jsonRequest = [NSJSONSerialization dataWithJSONObject:jsonDict options:NSJSONWritingPrettyPrinted error:&tempError];
-    NSString *fullPath = [NSString stringWithFormat:@"%@%@", @"http://fast-hollows-4122.herokuapp.com", path];
-    NSURL *url = [NSURL URLWithString:fullPath];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0];
-    
-    [request setHTTPMethod:@"POST"];
-    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-    [request setValue:[NSString stringWithFormat:@"%d", [jsonRequest length]] forHTTPHeaderField:@"Content-Length"];
-    [request setHTTPBody:jsonRequest];
-    
-    NSURLResponse *tempResponse =[[NSURLResponse alloc]init];
-    NSData *jsonResponse = [NSURLConnection sendSynchronousRequest:request returningResponse:&tempResponse error:&tempError];
-    
-    NSDictionary *jsonDictionaryResponse = [NSJSONSerialization JSONObjectWithData:jsonResponse options:kNilOptions error:&tempError];
-    
-    //NSArray  = [jsonDictionaryResponse objectForKey:@"data"];
-    
-}
-
-
 
 //Methods added for testing
 
@@ -1438,7 +1933,104 @@ int pressButtonTest;
 {
     return select[9];
 }
+- (CCMenuItemImage*) getSelect10
+{
+    return select[10];
+}
+- (CCMenuItemImage*) getSelect11
+{
+    return select[11];
+}
+- (CCMenuItemImage*) getSelect12
+{
+    return select[12];
+}
+- (CCMenuItemImage*) getSelect13
+{
+    return select[13];
+}
+- (CCMenuItemImage*) getSelect14
+{
+    return select[14];
+}
+- (CCMenuItemImage*) getShopItem0
+{
+    return shopItem[0];
+}
 
+- (CCMenuItemImage*) getShopItem1
+{
+    return shopItem[1];
+}
+
+- (CCLabelTTF*) getShopItemCounter0
+{
+    return shopItemCounter[0];
+}
+
+- (CCLabelTTF*) getShopItemCounter1
+{
+    return shopItemCounter[1];
+}
+
+
+- (CCLabelTTF*) getClock
+{
+    return clock;
+}
+- (CCMenuItemImage*) getStartButton{
+    return startButton;
+}
+
+- (void) setCurrentMinute :(int)minute
+{
+    currMinute = minute;
+}
+
+- (int) getCurrentMinute
+{
+    return currMinute;
+}
+
+- (void) setCurrentSecond :(int)second
+{
+    currSeconds = second;
+}
+
+- (int) getCurrentSecond
+{
+    return currSeconds;
+}
+
+
+- (int) getMaxChar
+{
+    return maxChar_m;
+}
+
+- (NSString*) testing
+{
+    return @"hello";
+}
+
+-(NSData *) getNSData{
+    return data;
+}
+
+-(NSString*) get_l
+{
+    return l_M;
+}
+
+-(int) getPenalty{
+    return my_penalty;
+}
+
+-(void) setPenalty:(int)p{
+    my_penalty = p;
+}
+
+/*
 //Temporary tests methods
 -(void) temporaryTests
 {
@@ -1713,6 +2305,41 @@ int pressButtonTest;
     NSAssert(pressButtonTest == 5, @"After sending 5, pressButtonTest should be 5");
     successTests++;
 }
+*/
+
+- (NSArray*) request:(NSString*) path SecondParameter:(NSDictionary*) parameter{
+    NSDictionary *jsonDict;
+    if ([path isEqualToString:@"users/SaveScores/multiple"]){
+    jsonDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                    [parameter objectForKey:@"score"], @"score",
+                    [parameter objectForKey:@"user"],@"user",
+                    nil];
+    }
+    else{
+        jsonDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                    nil];
+    }
+    
+    NSError *tempError;
+    NSData *jsonRequest = [NSJSONSerialization dataWithJSONObject:jsonDict options:NSJSONWritingPrettyPrinted error:&tempError];
+    NSString *fullPath = [NSString stringWithFormat:@"%@%@", @"http://enigmatic-everglades-8004.herokuapp.com/", path];
+    NSURL *url = [NSURL URLWithString:fullPath];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0];
+    
+    [request setHTTPMethod:@"POST"];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    [request setValue:[NSString stringWithFormat:@"%d", [jsonRequest length]] forHTTPHeaderField:@"Content-Length"];
+    [request setHTTPBody:jsonRequest]; 
+    NSURLResponse *tempResponse =[[NSURLResponse alloc]init];
+    NSData *jsonResponse = [NSURLConnection sendSynchronousRequest:request returningResponse:&tempResponse error:&tempError];
+    
+    NSDictionary *jsonDictionaryResponse = [NSJSONSerialization JSONObjectWithData:jsonResponse options:kNilOptions error:&tempError];
+    
+    return [jsonDictionaryResponse objectForKey:@"data"];
+    
+}
+
 
 
 

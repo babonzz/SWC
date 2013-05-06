@@ -1,0 +1,33 @@
+CodeCoverage Tutorial with LCOV on GHUnit
+==============================================================================
+
+** Follow http://qualitycoding.org/xcode-code-coverage/ **
+
+==============================================================================
+
+**Note:
+- Add the script to test project not main for GHUnit
+- Edit .plist file in test project:
+	- add "Application does not run in background  Boolean  YES"
+
+==============================================================================
+** TO RUN **
+- Run one of any GHUnit test(s)
+- Press HOME Button on simulator
+- Run getcov script from terminal (e.g. ./getcov)
+
+==============================================================================
+** IF TEST CODE CHANGED **
+- run ./cleancov
+==============================================================================
+** IF PRODUCTION CODE CHANGED **
+- XCode > Product > Clean
+==============================================================================
+
+** TO EXLUDE FILES/FOLDERS IN PROJECT **
+- Open getcov script
+- Edit exclude_data()
+
+- To exclude a folder called "test_folder" in project dir
+"${LCOV}" --remove ${LCOV_INFO} "test_folder/*" -d "${OBJ_DIR}" -o ${LCOV_INFO}
+

@@ -1164,6 +1164,103 @@ NSMutableDictionary *lettersDict;
 
 }
 
+
+/*Send data method for item usage*/
+-(void)sendUseItem:(const char*) words{
+    MessageUseItem message;
+    strcpy(message.Item,words);
+    message.message.messageType = KMessageTypeUseItem;
+    NSData *data = [NSData dataWithBytes:&message length:sizeof(MessageUseItem)];
+    [self sendData:data];
+}
+
+
+/* Methods used to handle item-using action;*/
+
+- (void) useExtraTime{
+    
+    
+    
+    [self sendWord1:[ExtraTime UTF8String]];
+}
+
+
+- (void) useViewObstructor{
+    
+    
+    [self sendWord1:[ViewObstructor UTF8String]];
+}
+- (void) useCharacterIncrease{
+    
+    
+    [self sendWord1:[CharacterIncrease UTF8String]];
+}
+
+- (void) useTimeFreezer{
+    
+    
+    
+    [self sendWord1:[TimeFreezer UTF8String]];
+}
+
+
+
+- (void) useTimeSlower{
+    
+    
+    
+    [self sendWord1:[TimeSlower UTF8String]];
+}
+
+
+
+
+- (void) ReceiveExtraTime{
+    
+}
+
+
+- (void) ReceiveViewObstructor{
+    
+    
+}
+
+
+
+- (void) ReceiveCharacterIncrease{
+    
+    
+    
+}
+
+
+
+- (void) ReceiveTimeFreezer{
+    
+    
+    
+}
+
+
+
+- (void) ReceiveTimeSlower{
+    
+    
+    
+}
+
+ 
+
+
+
+
+
+
+
+
+
+
+
 - (void)match:(GKMatch *)match didReceiveData:(NSData *)data fromPlayer:(NSString *)playerID {
     
     // Store away other player ID for later
@@ -1294,6 +1391,16 @@ NSMutableDictionary *lettersDict;
             CCScene* scene = [CCBReader sceneWithNodeGraphFromFile:@"Score.ccbi"];
             [[CCDirector sharedDirector]replaceScene:[CCTransitionCrossFade transitionWithDuration:0.3 scene:scene]];
         }
+    }
+    else if(message->messageType == KMessageTypeUseItem){
+        MessageUseItem* tempMessage =(MessageUseItem*) [data bytes];
+        NSString* tempString = [NSString stringWithUTF8String:tempMessage->Item];
+        if ([tempString isEqualToString:ExtraTime]){[self ReceiveTimeSlower];}
+        else if ([tempString isEqualToString:ViewObstructor]){[self ReceiveViewObstructor];}
+        else if ([tempString isEqualToString:CharacterIncrease]){[self ReceiveCharacterIncrease];}
+        else if ([tempString isEqualToString:TimeSlower]){[self ReceiveTimeSlower];}
+        else if ([tempString isEqualToString:TimeFreezer]){[self ReceiveTimeFreezer];}
+    
     }
 
 }
